@@ -1,3 +1,4 @@
+
 import streamlit as st
 import pandas as pd
 
@@ -24,14 +25,28 @@ st.markdown(
 # -----------------------------------
 @st.cache_data
 def load_data():
-    return pd.read_excel("input data.xlsx")
+    return pd.read_excel("input data.xlsx", engine="openpyxl")
 
 df = load_data()
 
 # -----------------------------------
-# Define features & target
+# Target variable
 # -----------------------------------
 TARGET = "Clogging_Rate_percent_per_year"
+
+# -----------------------------------
+# REMOVE UNWANTED COLUMNS (IMPORTANT)
+# -----------------------------------
+DROP_COLS = [
+    "NaOH_Molarity",
+    "Ns_Nh_Ratio"
+]
+
+df = df.drop(columns=[c for c in DROP_COLS if c in df.columns])
+
+# -----------------------------------
+# Features and target
+# -----------------------------------
 X = df.drop(columns=[TARGET])
 y = df[TARGET]
 
@@ -99,14 +114,17 @@ r2_df = pd.DataFrame.from_dict(
 st.dataframe(r2_df)
 
 # -----------------------------------
-# User input section
+# User inputs (ONLY remaining features)
 # -----------------------------------
 st.sidebar.header("🔧 Input Parameters")
 
 input_data = {}
 
 for col in X.columns:
-    input_data[col] = st.sidebar.number_input(col, value=float(X[col].mean()))
+    input_data[col] = st.sidebar.number_input(
+        col,
+        value=float(X[col].mean())
+    )
 
 input_df = pd.DataFrame([input_data])
 
